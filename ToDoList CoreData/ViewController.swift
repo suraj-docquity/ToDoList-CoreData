@@ -9,11 +9,11 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    
-    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     let formatter = DateFormatter()
+    
+    // ------------ Creating TableView Programatically (Computed Property Type) ------------
     
     let tableView : UITableView = {
         let table = UITableView()
@@ -27,14 +27,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         
         title = "ToDoList"
-        view.addSubview(tableView)
+        view.addSubview(tableView)  // attaching table to uiView
         getAllItems()
         tableView.delegate = self
         tableView.dataSource = self
         tableView.frame = view.bounds
         
+        // ------------ Navigation Controller : Add Item Button ------------
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addItemBtn))
     }
+    
+    // ------------ UIAlert Controller : Add Item Buttton ------------
     
     @objc func addItemBtn(){
         let alert = UIAlertController(title: "New Item", message: "Enter new item", preferredStyle: .alert)
@@ -50,22 +54,28 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }))
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
         present(alert,animated: true)
     }
+    
+    // ------------ TableView Controller : numberOfRows ------------
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
     
+    // ------------ TableView Controller : cellForRowAt ------------
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell") // default cell view (in-built type : adding progrmatically)
+        formatter.dateFormat = "HH:mm E, d MMM y"
         let item = items[indexPath.row]
         cell.textLabel?.text = item.itemName
         cell.detailTextLabel?.text = formatter.string(from: item.addedOn ?? Date())
+        cell.detailTextLabel?.alpha = 0.7
         return cell
     }
+    
+    // ------------ TableView Controller : didSelectRow ------------
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -84,9 +94,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             alert.addTextField(configurationHandler: nil)
             alert.textFields?[0].text = itemSelected.itemName
             alert.addAction(UIAlertAction(title: "Save", style: .default, handler: {[weak self] _ in
-                guard let feild = alert.textFields?[0], let text = feild.text, !text.isEmpty else{
-                    return
-                }
+                guard let feild = alert.textFields?[0], let text = feild.text, !text.isEmpty else{ return }
 
                 self?.updateItem(oldItem: itemSelected, newItemName: text)
 
@@ -102,9 +110,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         present(sheet,animated: true)
         
     }
+    
+    // ------------ CRUD Operation ------------
 
     func getAllItems(){
-        
         do
         {
             items = try context.fetch(ToDoListItem.fetchRequest())
@@ -116,7 +125,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         catch{
             // TODO: Handle Errors
         }
-        
     }
     
     func createItem(itemName : String){
@@ -155,5 +163,4 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             // TODO: Handle Errors
         }
     }
-
 }
